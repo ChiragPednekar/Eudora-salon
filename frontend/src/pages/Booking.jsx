@@ -75,9 +75,7 @@ const Booking = () => {
   const getActiveSlots = () => {
     if (!selectedOutlet) return [];
     const outlet = outlets.find(o => o._id === selectedOutlet);
-    return outlet?.activeSlots?.length > 0 ? outlet.activeSlots : [
-      "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"
-    ]; // Default fallback slots
+    return outlet?.activeSlots || [];
   };
 
   if (isLoading || !isAuthenticated) return null;

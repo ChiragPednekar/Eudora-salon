@@ -44,9 +44,13 @@ export const updateOutletSchedule = async (req, res) => {
   const outlet = await Outlet.findById(req.params.outletId);
 
   if (outlet) {
-    outlet.timings = timings || outlet.timings;
-    outlet.activeSlots = activeSlots || outlet.activeSlots;
-    outlet.blockedDates = blockedDates || outlet.blockedDates;
+    if (timings !== undefined) outlet.timings = timings;
+    if (activeSlots !== undefined) outlet.activeSlots = activeSlots;
+    if (blockedDates !== undefined) outlet.blockedDates = blockedDates;
+
+    // Explicitly mark modified for Mongoose arrays
+    outlet.markModified('activeSlots');
+    outlet.markModified('blockedDates');
 
     const updatedOutlet = await outlet.save();
     res.json(updatedOutlet);

@@ -13,6 +13,10 @@ const SalonDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [outlet, setOutlet] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
+  
+  const STANDARD_SLOTS = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
+  const [activeSlots, setActiveSlots] = useState([]);
+  const [savingSlots, setSavingSlots] = useState(false);
 
   useEffect(() => {
     if (!isLoading) {
@@ -32,6 +36,7 @@ const SalonDashboard = () => {
           ]);
           setAppointments(apptRes.data);
           setOutlet(outletRes.data);
+          setActiveSlots(outletRes.data.activeSlots || []);
         }
       } catch (error) {
         console.error('Failed to fetch salon data', error);
@@ -49,6 +54,25 @@ const SalonDashboard = () => {
       setAppointments(prev => prev.map(a => a._id === id ? { ...a, status } : a));
     } catch (error) {
       console.error('Failed to update status', error);
+    }
+  };
+
+  const toggleSlot = (slot) => {
+    setActiveSlots(prev => 
+      prev.includes(slot) ? prev.filter(s => s !== slot) : [...prev, slot].sort()
+    );
+  };
+
+  const saveSchedule = async () => {
+    setSavingSlots(true);
+    try {
+      await axios.put(`/api/outlets/${outlet._id}/schedule`, { activeSlots });
+      alert('Schedule updated successfully!');
+    } catch (error) {
+      console.error('Failed to save schedule', error);
+      alert('Failed to save schedule');
+    } finally {
+      setSavingSlots(false);
     }
   };
 
@@ -131,6 +155,43 @@ const SalonDashboard = () => {
             </table>
             {appointments.length === 0 && <p className={styles.empty}>No appointments found.</p>}
           </div>
+        </Card>
+
+        <Card style={{ marginTop: '24px' }}>
+          <h2>Slot Management</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '14px' }}>
+            Select which appointment slots are available for customers to book online.
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
+            {STANDARD_SLOTS.map(slot => (
+              <label 
+                key={slot} 
+                style={{
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px', 
+                  padding: '10px 16px', 
+                  background: activeSlots.includes(slot) ? 'rgba(207, 168, 110, 0.1)' : 'rgba(255,255,255,0.05)',
+                  border: `1px solid ${activeSlots.includes(slot) ? 'var(--primary-color)' : 'var(--border-color)'}`,
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  color: activeSlots.includes(slot) ? 'var(--primary-color)' : 'var(--text-secondary)'
+                }}
+              >
+                <input 
+                  type="checkbox" 
+                  checked={activeSlots.includes(slot)}
+                  onChange={() => toggleSlot(slot)}
+                  style={{ accentColor: 'var(--primary-color)' }}
+                />
+                {slot}
+              </label>
+            ))}
+          </div>
+          <Button variant="primary" onClick={saveSchedule} disabled={savingSlots}>
+            {savingSlots ? 'Saving...' : 'Save Schedule Configuration'}
+          </Button>
         </Card>
 
       </motion.div>
