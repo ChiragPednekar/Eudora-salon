@@ -147,9 +147,9 @@ const SalonLogin = () => {
                   style={{ background: '#111' }}
                 >
                   <option value="">Select your outlet...</option>
-                  {outlets.map((outlet) => (
+                  {Array.isArray(outlets) ? outlets.map((outlet) => (
                     <option key={outlet._id} value={outlet._id}>{outlet.name}</option>
-                  ))}
+                  )) : <option disabled>Loading outlets failed</option>}
                 </select>
               </div>
             )}

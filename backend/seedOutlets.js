@@ -1,44 +1,29 @@
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import Outlet from './src/models/Outlet.js';
 
-dotenv.config();
+const connectDB = async () => {
+  await mongoose.connect('mongodb+srv://Eudora:aCAAaachgEw9SaD5@cluster0.vmax5n9.mongodb.net/eudora_salon?appName=Cluster0');
+  
+  const outletSchema = new mongoose.Schema({
+    name: String,
+    location: String,
+    timings: { open: String, close: String },
+    activeSlots: [String]
+  });
+  
+  const Outlet = mongoose.models.Outlet || mongoose.model('Outlet', outletSchema);
+  
+  const defaultSlots = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
+  
+  const outletsData = [
+    { name: "Wadala East", location: "S. M. Road, Wadala East, Mumbai", timings: { open: "10:00", close: "21:00" }, activeSlots: defaultSlots },
+    { name: "Matunga", location: "Bhaudaji Road, Matunga, Mumbai", timings: { open: "10:00", close: "21:00" }, activeSlots: defaultSlots },
+    { name: "Dadar East", location: "Hindu Colony, Dadar East, Mumbai", timings: { open: "10:00", close: "21:00" }, activeSlots: defaultSlots }
+  ];
 
-const seedOutlets = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/eudora_salon');
-    
-    const outlets = [
-      {
-        name: 'Wadala East',
-        location: 'Dosti Aster, 14, Building, S. M. Road, Wadala East, Dosti Acres, Mumbai, Maharashtra 400037',
-        timings: { open: '10:00', close: '21:00' },
-        activeSlots: ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"]
-      },
-      {
-        name: 'Ghatkopar',
-        location: 'Ghatkopar, Mumbai, Maharashtra',
-        timings: { open: '10:00', close: '21:00' },
-        activeSlots: ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"]
-      }
-    ];
-
-    for (const outletData of outlets) {
-      const exists = await Outlet.findOne({ name: outletData.name });
-      if (!exists) {
-        await Outlet.create(outletData);
-        console.log(`Created outlet: ${outletData.name}`);
-      } else {
-        console.log(`Outlet already exists: ${outletData.name}`);
-      }
-    }
-
-    console.log('Outlet seeding complete!');
-    process.exit();
-  } catch (error) {
-    console.error('Error seeding outlets:', error);
-    process.exit(1);
-  }
+  await Outlet.deleteMany({});
+  await Outlet.insertMany(outletsData);
+  console.log('Outlets Seeded Successfully!');
+  process.exit(0);
 };
 
-seedOutlets();
+connectDB();
